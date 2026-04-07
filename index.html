@@ -1,0 +1,299 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>VVCE Masters Exam Seat Allocation</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{
+background-image:url("/static/bg/v2.jpg");
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+font-family:Arial;
+}
+
+/* Light overlay for readability */
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(249, 247, 247, 0);
+z-index:-1;
+}
+
+/* MAIN FORM CARD */
+
+.card{
+border-radius:18px;
+background:white;
+position:relative;
+overflow:hidden;
+}
+
+/* VVCE WATERMARK */
+
+.card::before{
+content:"";
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:420px;
+height:420px;
+background-image:url("/static/bg/v1.jpg");
+background-repeat:no-repeat;
+background-position:center;
+background-size:contain;
+opacity:0.07;
+z-index:0;
+}
+
+/* Keep form content above watermark */
+
+.card *{
+position:relative;
+z-index:1;
+}
+
+/* Student table scroll */
+
+.table-container{
+max-height:300px;
+overflow-y:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+
+<div class="card shadow-lg p-4" style="width:750px">
+
+
+<h5 class="text-center text-primary mb-2">
+<img src="/static/bg/v1.jpg"
+  style="width:80px;height:80px;margin-right:20px;">
+  <b>VIDYAVARDAKA COLLEGE OF ENGINEERING MYSORE</b>
+</h5>
+
+<h4 class="text-center text-success mb-4">
+     Master's Exam Seat Allocation System
+</h4>
+
+<form action="/allocate" method="post" id="studentForm">
+
+<!-- PROGRAM -->
+
+<div class="mb-3">
+
+<label class="form-label"><b>Program</b></label><br>
+
+<input type="checkbox" name="program" value="M.Tech"> M.Tech <input type="checkbox" name="program" value="MCA" class="ms-3"> MCA <input type="checkbox" name="program" value="MBA" class="ms-3"> MBA
+
+</div>
+
+<!-- SECTION -->
+
+<div class="mb-3">
+
+<label class="form-label"><b>Section</b></label><br>
+
+<input type="checkbox" name="section" value="A"> Section A <input type="checkbox" name="section" value="B" class="ms-3"> Section B
+
+</div>
+
+<!-- YEAR -->
+
+<div class="mb-3">
+
+<label class="form-label"><b>Year</b></label>
+
+<select class="form-control" name="year">
+
+<option value="1">1st Year</option>
+<option value="2">2nd Year</option>
+
+</select>
+
+</div>
+
+<!-- SEMESTER -->
+
+<div class="mb-3">
+
+<label class="form-label"><b>Semester</b></label>
+
+<select class="form-control" name="semester">
+
+<option value="1">Semester 1</option>
+<option value="2">Semester 2</option>
+<option value="3">Semester 3</option>
+<option value="4">Semester 4</option>
+
+</select>
+
+</div>
+
+<!-- NUMBER OF STUDENTS -->
+
+<div class="mb-3">
+
+<label class="form-label"><b>Enter Number of Students</b></label>
+
+<input
+type="number"
+id="studentCount"
+class="form-control"
+placeholder="Example: 20"
+
+>
+
+<button onclick="generateForm()" type="button" class="btn btn-primary mt-2">
+Generate Student Form
+</button>
+
+</div>
+
+<!-- STUDENT TABLE -->
+
+<div class="table-container">
+
+<table class="table table-bordered text-center" id="studentTable">
+
+<thead class="table-light">
+<tr>
+<th>USN</th>
+<th>Student Name</th>
+</tr>
+</thead>
+
+<tbody>
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- ROOM CAPACITY -->
+
+<input
+class="form-control mb-3"
+type="text"
+name="rooms"
+placeholder="Room Capacities (example: 10,10)"
+required
+
+>
+
+<div class="d-grid">
+
+<button class="btn btn-success btn-lg">
+Allocate Seats
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+<script>
+
+/* Generate student form */
+
+function generateForm(){
+
+let count=document.getElementById("studentCount").value;
+let tableBody=document.querySelector("#studentTable tbody");
+
+tableBody.innerHTML="";
+
+for(let i=0;i<count;i++){
+
+let row=`
+<tr>
+<td><input class="form-control usn" name="usn[]" required></td>
+<td><input class="form-control name" name="name[]" required></td>
+</tr>
+`;
+
+tableBody.innerHTML+=row;
+
+}
+
+loadSavedStudents();
+
+}
+
+/* Save student details automatically */
+
+document.addEventListener("input",function(){
+
+let usnFields=document.querySelectorAll(".usn");
+let nameFields=document.querySelectorAll(".name");
+
+let students=[];
+
+for(let i=0;i<usnFields.length;i++){
+
+students.push({
+usn:usnFields[i].value,
+name:nameFields[i].value
+});
+
+}
+
+localStorage.setItem("vvceStudents",JSON.stringify(students));
+
+});
+
+
+/* Load saved students */
+
+function loadSavedStudents(){
+
+let saved=localStorage.getItem("vvceStudents");
+
+if(saved){
+
+let students=JSON.parse(saved);
+
+let usnFields=document.querySelectorAll(".usn");
+let nameFields=document.querySelectorAll(".name");
+
+for(let i=0;i<students.length;i++){
+
+if(usnFields[i]){
+
+usnFields[i].value=students[i].usn;
+nameFields[i].value=students[i].name;
+
+}
+
+}
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
